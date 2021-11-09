@@ -1,105 +1,110 @@
-# 프로젝트 생성 
+## 프로젝트 생성
+
+![](../.gitbook/assets/2021-11-09-10-53-53.png)
 
 
-[application.properties](http://application.properties) 파일을 application.yml로 변경한다. 
-
-## application.yaml 설정
-
-yaml 파일에 다음을 추가
+## 초기 생성된 pom.xml
 
 ```jsx
-demo:
-  datasource:
-    database: mysql
-    user: root
-    password: 1234
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.5.6</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.sogood</groupId>
+	<artifactId>sogood-app</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>sogood-app</name>
+	<description>Demo project for Spring Boot</description>
+	<properties>
+		<java.version>11</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jdbc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mybatis.spring.boot</groupId>
+			<artifactId>mybatis-spring-boot-starter</artifactId>
+			<version>2.2.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
 ```
 
-## Controller 생성
+## JDBC 관련 주석처리
 
-`com.sogood.demo.controller` 에 YamlTestController.java를 생성한다.
-
-### ApplicationContext 사용
-
-applicatoinContext를 사용하여 프러퍼티를 읽는 방법을 살펴본다. 
-
-```java
-package com.sogood.demo.controller;
-
-import com.sogood.core.exception.BusinessException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-/** 예외처리 테스트 컨트롤러 */
-@RestController
-@RequestMapping("/demo/yaml")
-public class YamlTestController {
-    @Autowired
-    private ApplicationContext applicationContext;
-
-    /** ConfigurationProperties Test */
-    @GetMapping("/yaml-context")
-    public ResponseEntity<String> invokeBizError(HttpServletRequest request, HttpServletResponse response) {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>");
-        System.out.println(applicationContext.getEnvironment().getProperty("demo.datasource.database"));
-        System.out.println(applicationContext.getEnvironment().getProperty("demo.datasource.user"));
-        System.out.println(applicationContext.getEnvironment().getProperty("demo.datasource.password"));
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.TEXT_PLAIN);  // MediaType을 설정해야 한다.
-
-        return new ResponseEntity<String>("success", headers,  HttpStatus.OK);
-    }//:
-
-}///~
+```xml
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jdbc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mybatis.spring.boot</groupId>
+			<artifactId>mybatis-spring-boot-starter</artifactId>
+			<version>2.2.0</version>
+ 	  </dependency>
 ```
 
-설정값은 applicationContext.getEnvironment().getProperty("속성명")으로 꺼낼 수 있다. 
+## index.html 생성
 
-브라우저에서 다음 주소를 입력한다. 
+static 폴더에 index.html 생성 
 
-```java
-http://localhost/demo/yaml/yaml-context
+```jsx
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Home page</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<h2>index.html</h2>
+</body>
+</html>
 ```
 
-## ConfigurationProperties 어노테이션 사용
-
-## Bean 생성
-
-com.sogood.demo.config 패키지에 DemoYamlConfig.java를 생성한다.  yaml 설정 파일의 프러퍼티가 계층 구조일 때는 prefix 속성을 사용할 수 있다. yaml에 spring.freemarker.suffix를 사용해보자.
-
-```java
-package com.sogood.demo.config;
-
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-/** YAML 설정을 테스트하기 위한 Bean */
-@Getter
-@Setter
-@ConfigurationProperties(prefix="demo.datasource")
-@Component
-public class DemoYamlConfig {
-    private String database;
-    private String user;
-    private String password;
-}com.sogood.demo.controller
-
-```
-
-**Prefix 사용** 
-
-yaml 설정 파일의 프러퍼티가 계층 구조일 때는 prefix 속성을 사용할 수 있다.
-
-> property가 template-loader-path이면 Camel Notation 표기 방식으로 멤버 변수를 선언한다. 즉, templateLoaderPath와 같이 필드명을 설정한다.
->
+브라우저에서 [http://localhost:8080](http://localhost:8080) 을 호출한다.
