@@ -95,7 +95,7 @@ WebMvcConfigurer를 구현한 DispatcherConfig에 인터셉터를 등록하기 �
   }//:
 ```
 
-### [InterceptorSetting.java](http://InterceptorSetting.java) 구현
+### InterceptorSetting.java 구현
 
 인터셉터를 정의한 JSON 파일을 Java Bean으로 변경하기 위한 InterceptorSetting.java를 다음과 같이 구현한다. 
 
