@@ -117,7 +117,7 @@ public enum BlogPostCode implements CodeEnumType<String> {
 ```
 
 
-## Enumd을 사용한 로직 처리 
+## Enum을 사용한 로직 처리 
 
 ### JavaBean에서 코드값 필드 정의 
 Java Bean에서는 코드값은 Enum을 사용한다. 
