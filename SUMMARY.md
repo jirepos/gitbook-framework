@@ -1,9 +1,5 @@
 # Table of contents
 
-* [Contents](README.md)
-
-
-* [Spring Boot 로깅 처리](logging.md)
 * [프로젝트 생성](01-create-project.md)
 * [YAML 사용](02-yaml.md)
 * [MyBatis 설정](03-mybatis.md)
