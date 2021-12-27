@@ -1,11 +1,6 @@
 # Table of contents
 
 * [Contents](README.md)
-* [codec](codec/README.md)
-  * [DataConverter.java](codec/dataconverter.java.md)
-* [crypt](crypt/README.md)
-  * [CryptUtils.java](crypt/cryptutils.java.md)
-  * [RSAUtils.java](crypt/rsautils.java.md)
 * [Interceptor 사용 방법](interceptor.md)
 * [Java8 Date](java8-date.md)
 * [다국어 처리](undefined.md)
@@ -43,6 +38,9 @@
   * [MyBatis SQLBuilder 사용](framework/21-mybatis-sqlbuilder.md)
   * [IO 처리](framework/22-io-proc.md)
   * [16진수 처리](framework/23-hexconverter.md)
+  * [crypt](24-crypt/README.md)
+    * [CryptUtils.java](24-crypt/cryptutils.java.md)
+    * [RSAUtils.java](24-crypt/rsautils.java.md)
 * [기타](framework/90-etc/README.md)
   * [내장 톰캣 설정](framework/90-etc/01-config-tomcat.md)
   * [스프링부트 WAR BUILD](framework/90-etc/02-war-build.md)
