@@ -2,7 +2,7 @@
 
 * [Contents](README.md)
 * [Interceptor 사용 방법](interceptor.md)
-* [Java8 Date](java8-date.md)
+
 * [다국어 처리](undefined.md)
 * [html과 같은 정적 파일 서비스](html.md)
 * [Spring Boot 로깅 처리](logging.md)
@@ -41,6 +41,7 @@
   * [crypt](24-crypt/README.md)
     * [CryptUtils.java](framework/24-crypt/cryptutils-java.md)
     * [RSAUtils.java](framework/24-crypt/rsautils-java.md)
+  * [Java8 Date](framework/25-java8-date.md)
 * [기타](framework/90-etc/README.md)
   * [내장 톰캣 설정](framework/90-etc/01-config-tomcat.md)
   * [스프링부트 WAR BUILD](framework/90-etc/02-war-build.md)
