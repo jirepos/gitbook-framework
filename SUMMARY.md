@@ -42,6 +42,7 @@
   * [반복일정 처리](framework/20-date-recurrence.md)
   * [MyBatis SQLBuilder 사용](framework/21-mybatis-sqlbuilder.md)
   * [IO 처리](framework/22-io-proc.md)
+  * [16진수 처리](framework/23-hexconverter.md)
 * [기타](framework/90-etc/README.md)
   * [내장 톰캣 설정](framework/90-etc/01-config-tomcat.md)
   * [스프링부트 WAR BUILD](framework/90-etc/02-war-build.md)
