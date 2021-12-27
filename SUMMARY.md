@@ -24,7 +24,7 @@
 * [Filter 적용](13-filter.md)
 * [Interceptor 적용](15-interceptor.md)
 * [File Upload](16-file-upload.md)
-* [Code 관리](17-code-manage.md)
+* [Enum을 이용한 Code 관리](17-code-manage.md)
 * [HTTP 연동 처리](18-okhttp.md)
 * [Image 처리](19-image.md)
 * [반복일정 처리](20-date-recurrence.md)
