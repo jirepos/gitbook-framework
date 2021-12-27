@@ -2,7 +2,7 @@
 
 * [Contents](README.md)
 
-* [html과 같은 정적 파일 서비스](html.md)
+
 * [Spring Boot 로깅 처리](logging.md)
 * [프로젝트 생성](01-create-project.md)
 * [YAML 사용](02-yaml.md)
@@ -41,6 +41,7 @@
 * [Java8 Date](25-java8-date.md)
 * [Interceptor 사용 방법](26-interceptor.md)
 * [다국어 처리](27-multi-lingual.md)
+* [html과 같은 정적 파일 서비스](28-html.md)
 * [기타](90-etc/README.md)
   * [내장 톰캣 설정](90-etc/01-config-tomcat.md)
   * [스프링부트 WAR BUILD](90-etc/02-war-build.md)
