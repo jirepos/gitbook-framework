@@ -101,4 +101,81 @@ public class DemoYamlConfig {
 yaml 설정 파일의 프러퍼티가 계층 구조일 때는 prefix 속성을 사용할 수 있다.
 
 > property가 template-loader-path이면 Camel Notation 표기 방식으로 멤버 변수를 선언한다. 즉, templateLoaderPath와 같이 필드명을 설정한다.
->
+
+
+
+
+## @Value 어노테이션 사용 
+
+yaml 파일에 다음과 같이 설정한다. 
+```yaml
+i18n-message-files: translation/demo/demo-msg,translation/demo/demo-common
+mybatis-type-handlers: com.sogood.biz.blog.code.BlogPostCode, com.sogood.biz.glob.code.MyCode
+```
+
+@Value 어노테이션을 멤버 필드에 사용한다. 
+```java
+package com.sogood.core.config.test;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@Component
+public class TestConfigBean {
+  @Value("${i18n-message-files}")
+  private String[] i18nMessageFiles;
+
+  @Value("${mybatis-type-handlers}")
+  private String[] myBatisTypeHandlers; 
+
+}
+```
+다음과 같이 테스트 코드를 작성한다. 
+```java
+
+    @Autowired 
+    private TestConfigBean testConfigBean; 
+
+    @GetMapping("/yaml-config-bean")
+    public ResponseEntity<String> yamlConfigBean(HttpServletRequest request, HttpServletResponse response) {
+        
+        System.out.println(testConfigBean.getI18nMessageFiles());
+        for(String str : testConfigBean.getI18nMessageFiles()) {
+            System.out.println(str);
+        }
+        for(String str : testConfigBean.getMyBatisTypeHandlers()) {
+            System.out.println(str);
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_PLAIN);  // MediaType을 설정해야 한다.
+        return new ResponseEntity<String>("success", headers,  HttpStatus.OK);
+    }
+```
+다음과 같이 결과가 출력된다. 
+```shell
+translation/demo/demo-msg
+translation/demo/demo-common
+com.sogood.biz.blog.code.BlogPostCode
+com.sogood.biz.glob.code.MyCode
+```
+
+
+### Method Parameter에서 사용 
+@Value 어노테이션은 메서드 파라미터에서도 사용이 가능하다. 
+```java
+@Configuration
+public class AppConfig {
+ public MessageSource messageSource( @Value("${i18n-message-files}") List<String> basenames) {
+    // ... 생략 
+ }
+}///~
+```     
+
+
+
+
