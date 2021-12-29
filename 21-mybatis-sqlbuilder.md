@@ -197,7 +197,7 @@ WHERE (A.userId = #{userId} AND A.userStat = '1')
           WHERE("A.userId = #{userId}");
           WHERE("A.userStat = '1'");
         }
-      }.to
+      }.toString()
 ```
 ```sql
 SELECT SELECT *
