@@ -92,22 +92,50 @@ StatusCode는 표준 값을 사용한다.
 
 ### 에러 코드 관리
 
-에러 코드는 Enum을 사용하여 관리한다. 
+에러 코드는 Enum을 사용하여 관리한다.  에러 코드는 ErrorCodeEnumType 인터페이스를 구현한다. 
+```java
+package com.sogood.core.types;
+
+import org.springframework.http.HttpStatus;
+
+/** 모든 Error Code를 처리할 Enum 클래스에서 구현할 인터페이스이다. */
+public interface ErrorCodeEnumType {
+    /**
+     * HttpStatus를 반환한다.
+     * @return HttpStatus
+     */
+    HttpStatus status();
+
+    /**
+     * 에러 메시지를 반환한다.
+     * @return 상세 메시지
+     */
+    String detailMessage();
+
+    /**
+     * Enum의 상수명을 반환한다.
+     * @return
+     *      상수명
+     */
+    String errorName();
+}//:
+
+```
 
 - framework에서 사용하는 에러 코드와  각 모듈에서 사용하는 에러 코드를 나누어 관리한다.
 
 ```jsx
 package com.sogood.core.error;
 
+import com.sogood.core.types.ErrorCodeEnumType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
 
 /** 전역에서 사용할 에러 코드 */
 @Getter
 @AllArgsConstructor
-public enum ErrorCode {
+public enum ErrorCode implements ErrorCodeEnumType {
     //  400 BAD REQUSET
     /** 정의되지 않은 유형의 오류 */
     OTHER_ERROR(HttpStatus.BAD_REQUEST, "정의되지 않는 유형의 오류입니다."),
@@ -115,10 +143,23 @@ public enum ErrorCode {
 
     // 401 Unauthorized
     /** 로그인  하지 않은 사용자 */
-    UNAUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "로그인 하지 않은 사용자입니다. 로그인을 먼저 해야 합니다.");
+    UNAUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "로그인 하지 않은 사용자입니다. 로그인을 먼저 해야 합니다."),
+
+    // 500 Internal Server Error
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "시스템 오류입니다.");
 
     private final HttpStatus httpStatus;
     private final String detail;
+
+    public HttpStatus status() {
+        return httpStatus;
+    }
+    public String detailMessage() {
+        return detail;
+    }
+    public String errorName() {
+        return this.toString();
+    }
 }///~
 ```
 
