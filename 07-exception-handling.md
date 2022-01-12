@@ -221,6 +221,7 @@ Connection: close
 fetch(url, { /* options */})
 .then(response => {
     // 서버 응답이 200인경우 
+    
     // response.status >= 200 && response.status <= 299
     if(response.ok) {
         // 서버가 json을 되돌리는 경우 
