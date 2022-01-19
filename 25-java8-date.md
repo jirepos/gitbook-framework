@@ -1,15 +1,181 @@
 # Java8 Date
 
-**GMT(Greenwich Mean Time)**\
-GMT는 경도 0도에 위치한 영국 런던 그리니치에 있는 왕립 천문대의 시간으로, 모든 시간대의 시작점을 나타내며, 일년내내 DST의 영향을 받지 않는다. GMT는 1925년 2월 5일부터 사용하기 시작했으며, 1972년 1월 1일까지 세계 표준시로 사용되었다.
+## DateTime 처리 기준 
 
-**UTC(협정 세계시, 協定世界時)**\
-UTC는 국제 표준시를 뜻하며 타임존은 아니다. 즉, 공식적으로 UTC를 현지 시간으로 사용하는 국가나 지역은 없다. 협정 세계시를 영어권에서는 Coordinated Universal TimeCUT라고, 프랑스어권에서는 Temps Universel CoordonnéTUC라고 하는데, 혼돈을 방지하기 위해서 공식적으로 UTC라고 정해졌다.
+* 날짜 시간에 대한 클래스 멤버 필드는 LocalDateTime을 사용한다. 
+* DB에는 UTC 값을 저장한다. 
+* 3.4.5 버전부터, MyBatis는 JSR-310(Date 와 Time API) 를 기본적으로 지원한다.
+* DB에서 가져온 DateTime은 사용자의 시간대로 변환하여 클라이언트에 반환한다.
+* LocalDateTime을 JSON으로 변환할 때는 '2022-01-18T11:10:43'의 형식으로 변환한다. 
+* 클라이언트가 전송한 DateTime은 사용자의 시간대의 LocalDateTime이기 때문에 UTC로 변환한다. 
+* 시간대는 사용자의 PC의 시간대가 아닌 사용자가 선택한 시간대를 사용한다.
+* 시간대를 사용하려면 반드시 날짜가 있어야 한다. 시간만 가지고서는 시간대에 맞게 변환이 불가능하다. 
 
-Java 8에서는 타임존을 고려한 날짜와 시간까지도 더 명확하고 편리하게 사용할 수 있다. 타임존은 ZoneId 클래스를 통해 날짜/시간별 DST 이 반영되었는지 확인 할 수도 있다. ZoneId.getAvailableZoneIds() 를 통해 지원하는 지역별 타임존을 확인할 수 있다(현재 시점 등록된 ZoneId는 600개이다).
+## Java Bean에서 LocalDateTime 필드 
+클래스 필드에서 LocalDateTime 클래스를 타입으로 사용한다. 
+```java
+public class TestBean { 
+	private LocalDateTime regDt; 
+}
+```
 
-**DST(Daylight Saving time)**\
-DST은 자연 일광을 보다 잘 활용하기 위해서 여름철에 표준 시간에서 1시간 앞으로, 그리고 다시 가을에 시간을 1시간 전으로 설정하는 것을 말한다. DST와 "summer time"은 같은 말을 뜻하며 특정 나라에서 주로 불린다. 영국에서 썸머타임이라고 많이 사용하며, DST가 적용되지 않는 표준시는 "winter time"이라고 사용되기도 한다. DST를 독일에서는 "sommerzeit", 스칸디나비아에서는 "sommertid"라고도 사용한다.
+## JSON 포맷 설정 
+LocalDateTime을 JSON으로 변환하기 위해 \@JsonFormat 어노테이션을 사용한다. 
+```java
+public class Testbean {
+  @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
+	private LocalDateTime regDt;
+} 
+```
+LocalDateTime을 Serialize하려면 ObjectMapper의 JavaTimeModule를 활성화 해야 한다. 
+```java
+ObjectMapper mapper = new ObjectMapper();
+// LocalDateTime을 Serialize하려면 JavaTimeModule을 활성화해야 한다.
+mapper.registerModule(new JavaTimeModule());
+```
+
+ObjectMapper를 직접사용하지 않는 경우, 즉 SpringBoot에서 사용하는 경우에는 application.yml에 다음을 설정한다. 
+
+```yaml
+spring:
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+```
+
+
+## 시간대 저장 
+사용자가 시간대를 선택할 수 있도록 시간대를 DB에 저장한다. 시간대는 ZoneId와 Offset을 구분하여 저장한다. ZoneIdBean을 사용한다. 
+```java
+public class ZoneIdBean {
+    /** ZoneId 문자열 */
+    private String zoneId;
+    /** Offset 값. 예) +09:00 */
+    private String offset;
+}///~
+```
+
+DB에 저장할 데이터를 구하기 위해서 DateUtils.java의 getTimeZoneIdsWithZoneIdBean() 메서드를 사용한다. 
+
+```java
+    @Test
+    public void testZonIds() {
+        List<ZoneIdBean> list = DateUtils.getTimeZoneIdsWithZoneIdBean();
+        list.forEach( item -> {
+            System.out.format("%s (%s) \n", item.getZoneId(), item.getOffset() );
+         });
+    }
+```
+결과 
+
+```shell
+Asia/Aden (+03:00) 
+America/Cuiaba (-03:00) 
+Etc/GMT+9 (-09:00) 
+Etc/GMT+8 (-08:00) 
+... 생략 ....
+```
+
+
+## 현재 시간 구하기 
+현재 시간은 항상 UTC를 기준으로 구한다.  DateTimeUtils.java의 nowUTC() 메서드를 사용한다. 
+```java
+    @Test
+    public void testNowUTC() {
+        LocalDateTime ldt = DateUtils.nowUTC();
+        System.out.println(ldt);  //2022-01-17T06:36:30.618465300
+    }//:
+```
+
+<div style="background-color:yellow;">
+테스트 문장
+</div>
+
+결과 
+
+```shell
+2022-01-19T00:37:53.151740400
+```
+
+DB에 저장할 때는 UTC 기준 시간대의 LocalDateTime을 그대로 저장한다. 
+
+
+## 시간대 변경하기
+DB에는 UTC 기준으로 시간값이 저장되어 있다. DB에서 데이터를 조회한 다음에 클라이언트에 보내려면 사용자의 시간대로 변환해야 한다. DateUtils.java의 changeUTCToAnotherZone() 메소드를 사용한다. 
+
+사용자가 선택한 시간대가 Asia/Seoul이라면 다음과 같이 작성한다. 
+```java
+// UTC를 서울 시간대로 변경
+LocalDateTime d2 = DateUtils.changeUTCToAnotherZone(bean.getRegDate(), ZoneId.of("Asia/Seoul")); 
+bean.setRegDate(d2);  // 사용자 시간대로 다시 값을 설정 
+```
+
+반대로, 사용자가 선택한 시간을 DB에 저장하려면 시간대를 UTC로 변경하고 UTC 시간대의 LocalDateTime을 구해야 한다.  DateUtils.java의 changeZoneToUTC() 메서드를 사용한다.  이 메서드의 두번째 인자는 사용자의 시간대 ZoneId이다. 
+
+```java
+LocalDateTime d4 = DateUtils.changeZoneToUTC(d2, ZoneId.of("Asia/Seoul"));
+```
+
+
+## DB에서 검색 
+DB에는 UTC 기준으로 시간 값이 들어 있다. 사용자는 검색을 위해 날짜를 선택하면 DB에 저장된 UTC 기준으로 변환하여 조건식을 만들어야 한다. 예를 들어, 사용자가 선택한 시간대가 2022-01-01이면 사용자의 시간대 기준으로 조건은 다음과 같다. 
+
+```shell
+2022-01-01 00:00:00 부터 2022-01-01 23:59:59 까지 
+```
+
+밀리세컨이나 나노세컨이 계산이 어려우니까 계산을 쉽게 하자면  다음과 같이 할 수 있다. 
+
+```shell
+날짜 >= 2022-01-01 00:00:00 AND 날짜 < 2022-01-02 00:00:00 까지 
+```
+
+먼저 선택한 날짜를 0시 0분을 기준으로 LocalDateTime으로 변환한다. 그리고 변환된 날짜에 1일을 더한다.  그러면 from ~ to 조건의 LocalDateTime을 만들 수 있다. 
+```java
+        String dateStr = "2022-01-01";
+        LocalDate ld = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd" ));
+        LocalTime lt = LocalTime.of(00, 00);
+        LocalDateTime localFrom = LocalDateTime.of(ld,lt);
+        // 이것을 UTC로 변경
+        LocalDateTime from = DateUtils.changeZoneToUTC(localFrom, ZoneId.of("Asia/Seoul"));
+        System.out.println(from);  // 2021-12-31T15:00
+        LocalDateTime to = from.plusDays(1);
+        System.out.println(to);  // 2022-01-01T15:00
+```
+
+간단히 하기 위해서 DateUtils.java의 toUTCLocalDateTime() 메서드를 사용한다. 
+
+```java
+    @Test
+    public void testMakeCondition2() {
+        String dateStr = "2022-01-01";
+        LocalDateTime from = DateUtils.toUTCLocalDateTime(dateStr, "yyyy-MM-dd"
+                , 0,0,0, ZoneId.of("Asia/Seoul"));
+        LocalDateTime to = from.plusDays(1);
+        System.out.format("%s ~ %s \n", from, to);
+				// 2021-12-31T15:00 ~ 2022-01-01T15:00 
+    }//:
+```
+
+쿼리에서 직접 사용하는 경우 다음과 같이 할 수 있다. 
+```sql
+select * from blog_post
+where reg_dt >= str_to_date('20220119:040000', '%Y%m%d:%H%i%S')
+and reg_dt < str_to_date('20220120:040000', '%Y%m%d:%H%i%S')
+```
+
+
+
+
+## DateUtils.java 
+앞에서 설명하지 않은 주요 메서드들을 살펴본다. 
+
+
+
+
+
+
+
 
 ## Classes
 
@@ -21,10 +187,14 @@ DST은 자연 일광을 보다 잘 활용하기 위해서 여름철에 표준 �
 
 UTC 기준으로 시간(Time Offset)을 나타낸 것이라고 보면 된다. 우리나라는 KST를 사용하는데 KST는 UTC보다 9시간이 빠르므로 UTC +09:00으로 표기한다. ZoneOffset은 ZoneId의 자식 클래스이다.
 
-* Instant는 글로벌 타임 라인 (UTC)에서 순간적인 지점이며 시간대와 관련이 없습니다.
-* LocalDate 및 LocalDateTime에는 표준 시간대 개념이 없지만 now()을 (를) 호출하면 올바른 시간을 얻을 수 있습니다.
+* Instant는 글로벌 타임 라인 (UTC)에서 순간적인 지점이며 시간대와 관련이 없다.
+* LocalDate 및 LocalDateTime에는 표준 시간대 개념이 없지만 now()을 (를) 호출하면 올바른 시간을 얻을 수 있다.
 * OffsetDateTime에는 시간대가 있지만 일광 절약 시간제를 지원하지 않습니다.
 * ZonedDateTime에는 표준 시간대 지원이 있습니다.
+
+
+
+
 
 ### ZoneRegion
 
