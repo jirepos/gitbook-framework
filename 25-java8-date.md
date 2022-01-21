@@ -43,6 +43,30 @@ spring:
       WRITE_DATES_AS_TIMESTAMPS: false
 ```
 
+### \@JsonFormat 사용하지 않고 처리 
+WebMvcConfigurer 인터페이스를 구현한다. extendMesageconverters를 override한다. 
+
+```java
+@EnableWebMvc
+@Configuration
+public class DispatcherConfig implements WebMvcConfigurer {
+
+  @Override
+  public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+    
+    ObjectMapper objectMapper = Jackson2ObjectMapperBuilder // 스프링이 제공하는 클래스
+            .json()
+            // 다음 매서드는 유닉스 타임스태프로 출력하는 기능을 비활성화(ISO-8601 사용)
+            .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .build();
+    /*
+     * 미리 등록된 HttpMessageConverter에는 Jackson을 사용하는 것도 포함되어 있으므로,
+     * 새로 생성한 HttpMessageConverter는 다음과 같이 인덱스 0에 위치(맨 앞)함
+     */
+    converters.add(0, new MappingJackson2HttpMessageConverter(objectMapper));
+  }
+}
+```
 
 ## 시간대 저장 
 사용자가 시간대를 선택할 수 있도록 시간대를 DB에 저장한다. 시간대는 ZoneId와 Offset을 구분하여 저장한다. ZoneIdBean을 사용한다. 
@@ -87,9 +111,6 @@ Etc/GMT+8 (-08:00)
     }//:
 ```
 
-<div style="background-color:yellow;">
-테스트 문장
-</div>
 
 결과 
 
