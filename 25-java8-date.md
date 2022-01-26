@@ -44,16 +44,25 @@ spring:
 ```
 
 ### \@JsonFormat 사용하지 않고 처리 
-WebMvcConfigurer 인터페이스를 구현한다. extendMesageconverters를 override한다. 
 
+Spring에서 java.util.Date와 java.time.LocalDateTime을 Serialize하면 다음과 같이 시리얼라이즈된다. 
+```shell
+ 1642992708042   // java.util.Date
+ [2022, 1, 24, 11, 51, 48, 48293600]  // java.time.LocalDate
+```
+Date type을 Serialize/deserialize 하려면 두가지를 고려해야 한다. 
+
+첫번쩨는, JSON을 Object로 변환하거나 Object를 JSON으로 변환하는 것이고
+두번째는, Request parameter나 PathVariable를 Bean으로 변환하는 것이다. 
+
+#### extendMessageConverters() 구현 
+Object를 JSON으로 변환하거나 반대의 경우에는 Jackson을 사용한다. Date 타입을 ISO 형식에 맞게 시리얼라이즈/디시리얼라이즈 하려면 Jackson2ObjectMapperBuilder를 사용한다.  WebMvcConfigurer 인터페이스의  extendMessageConverters()를 구현하면 Date type을 원하는 형태로 변환할 수 있다. 
 ```java
 @EnableWebMvc
 @Configuration
 public class DispatcherConfig implements WebMvcConfigurer {
-
   @Override
   public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-    
     ObjectMapper objectMapper = Jackson2ObjectMapperBuilder // 스프링이 제공하는 클래스
             .json()
             // 다음 매서드는 유닉스 타임스태프로 출력하는 기능을 비활성화(ISO-8601 사용)
@@ -65,8 +74,102 @@ public class DispatcherConfig implements WebMvcConfigurer {
      */
     converters.add(0, new MappingJackson2HttpMessageConverter(objectMapper));
   }
+
+}  
+```
+
+이렇게 하면, JSON을 Java Bean 객체로 변환할 수 있다. 
+```java
+    @GetMapping("/get-date")
+    public ResponseEntity<DemoBean> getJson() {
+        DemoBean bean = new DemoBean();
+        bean.setUserName("Hong");
+        bean.setAge(10);
+        bean.setOrderDate(Date.from(Instant.now()));
+        bean.setRegDt(LocalDateTime.now());
+        return new ResponseEntity<DemoBean>(bean, HttpStatus.OK);
+    }//:
+```
+JSON 응답결과를 보면 날짜 형식이 java.util.Date와 java.time.LocalDateTime이 조금 다른데  java.time.LocalDateTime의 경우 ISO 형식으로 봔한 되는 것을 볼 수 있다. 
+```java
+{
+    "userId": null,
+    "userName": "Hong",
+    "age": 10,
+    "orderDate": "2022-01-24T03:03:14.925+00:00",  // java.util.Date 
+    "regDt": "2022-01-24T12:03:14.9294194",  // java.time.LocalDateTime
+    "addrs": null,
+    "favors": null
 }
 ```
+JSON을 Java Bean의 Object로 변환하려면 ISO 형식에 맞게 문자열을 만들어서 보내야 한다. 
+```json
+        let options = {
+          method: 'POST',
+          url:'/demo/date/put-date',
+          body: {
+            userId: "a123",
+            userName: "홍길동",
+            age: 30,
+            regDt: "2022-01-21T18:17:32.7784342" // ISO 형식
+          }
+```          
+
+
+```java
+    @PostMapping("/put-date")
+    public ResponseEntity<DemoBean> getJson(@RequestBody DemoBean bean) {
+        return new ResponseEntity<DemoBean>(bean, HttpStatus.OK);
+    }//:
+```
+
+
+#### addFormatters() 구현 
+
+일단, Conrolller의 메서드를 살펴보자. 
+
+```java
+    @GetMapping("/use-path/{regDt}")
+    public ResponseEntity<DemoBean> getJsonPathVariable(@PathVariable("regDt") LocalDateTime regDt) {
+        DemoBean bean = new DemoBean();
+        bean.setRegDt(regDt);
+        return new ResponseEntity<DemoBean>(bean, HttpStatus.OK);
+    }//:
+```    
+아래 예시에서처럼 \@PathVariable이나 Reqeuest Paraemter를 LocalDateTime으로 변환하려면 WebConfigurer의 addFormatters() 메서드를 구현해야 한다. 
+```java
+@EnableWebMvc
+@Configuration
+public class DispatcherConfig implements WebMvcConfigurer {
+  @Override
+  public void addFormatters(FormatterRegistry registry) {
+    DateTimeFormatterRegistrar dateTimeFormatterRegistrar = new DateTimeFormatterRegistrar();
+//    dateTimeFormatterRegistrar.setUseIsoFormat(true); // ISO 포맷 사용시, 그게 아니면 각자 명시적 설정
+    dateTimeFormatterRegistrar.setDateFormatter(DateTimeFormatter.ISO_DATE);
+    dateTimeFormatterRegistrar.setDateTimeFormatter(DateTimeFormatter.ISO_DATE_TIME);
+    dateTimeFormatterRegistrar.registerFormatters(registry);
+  }
+}  
+```
+
+아래 코드와 같이 \@PathVariable이나 Request Parameter를 객체로 변환하려면 별도의 포맷터를 구현해야 한다. 차후에 필요한 경우에 구현하기로 하고 그렇다는 것만 기억하자. 
+
+```java
+    @GetMapping("/use-path/{regDt}")
+    public ResponseEntity<Person> getJsonPathVariable(@PathVariable("regDt") Person person) {
+        return new ResponseEntity<Person>(person, HttpStatus.OK);
+    }//:
+```
+JSON을 보낼 때에는 다음과 같이 한다. 
+```jsx
+        let  regDt = "2022-01-21T18:17:32.7784342";
+
+        let options = {
+          method: 'GET',
+          url:'/demo/date/use-path/' + regDt
+        }
+```
+
 
 ## 시간대 저장 
 사용자가 시간대를 선택할 수 있도록 시간대를 DB에 저장한다. 시간대는 ZoneId와 Offset을 구분하여 저장한다. ZoneIdBean을 사용한다. 
